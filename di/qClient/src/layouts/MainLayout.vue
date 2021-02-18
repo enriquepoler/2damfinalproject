@@ -12,10 +12,10 @@
         />
 
         <q-toolbar-title>
-          Quasar App
+          Qualificacions App
         </q-toolbar-title>
 
-        <div>Quasar v{{ $q.version }}</div>
+        <div>{{ dateNow }}</div>
       </q-toolbar>
     </q-header>
 
@@ -25,15 +25,16 @@
       bordered
       content-class="bg-grey-1"
     >
-      <q-list>
-        <q-item-label
-          header
-          class="text-grey-8"
-        >
-          Essential Links
-        </q-item-label>
+      <q-list v-if="logged">
         <EssentialLink
           v-for="link in essentialLinks"
+          :key="link.title"
+          v-bind="link"
+        />
+      </q-list>
+      <q-list v-else>
+        <EssentialLink
+          v-for="link in essentialLinksNotLogged"
           :key="link.title"
           v-bind="link"
         />
@@ -94,13 +95,37 @@ const linksData = [
   }
 ]
 
+const linksDataNotLogged = [
+  {
+    title: 'Login',
+    caption: 'Loggin into app',
+    icon: 'public',
+    link: '/login'
+  },
+  {
+    title: 'About',
+    caption: 'About our page',
+    icon: 'school',
+    link: '/about'
+  }
+]
+
 export default {
   name: 'MainLayout',
   components: { EssentialLink },
   data () {
     return {
       leftDrawerOpen: false,
-      essentialLinks: linksData
+      essentialLinks: linksData,
+      essentialLinksNotLogged: linksDataNotLogged,
+      logged: false
+    }
+  },
+  computed: {
+    dateNow () {
+      const timeStamp = new Date(Date.now())
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }
+      return timeStamp.toLocaleDateString('ca-ES', options)
     }
   }
 }
