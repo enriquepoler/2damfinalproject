@@ -17,6 +17,11 @@
                 v-model="username"
                 type="username"
                 label="Nom d'usuari"
+                :rules="[
+                  val => !!val || '* Required',
+                  val => isValidFullName || 'Introduce un nombre correcto.'
+                ]"
+                lazy-rules
               >
                 <template v-slot:prepend>
                   <q-icon name="person" />
@@ -27,7 +32,13 @@
                 clearable
                 v-model="dni"
                 type="dni"
-                label="DNI">
+                label="DNI"
+                :rules="[
+                  val => !!val || '* Required',
+                  val => isValidDNI || 'Introduce un DNI correcto.'
+                ]"
+                lazy-rules
+              >
                 <template v-slot:prepend>
                   <q-icon name="recent_actors" />
                 </template>
@@ -49,9 +60,10 @@
                 v-model="password"
                 type="password"
                 label="Contrasenya"
-                :rule="[
-                  (val) => val != '' || 'La contrasenya no pot ser buida',
+                :rules="[
+                  val => !!val || '* Required'
                 ]"
+                lazy-rules
               >
                 <template v-slot:prepend>
                   <q-icon name="lock" />
@@ -63,10 +75,11 @@
                 v-model="password2"
                 type="password"
                 label="Confirma contrasenya"
-                :rule="[
+                :rules="[
                   (val) => val == this.password || 'Les contrasenyes no coincideixen',
-                  (val) => this.password2 != '' || 'Inserta contrasenya de confirmacio'
+                  (val) => !!val || 'Inserta contrasenya de confirmacio'
                 ]"
+                lazy-rules
               >
                 <template v-slot:prepend>
                   <q-icon name="lock" />
