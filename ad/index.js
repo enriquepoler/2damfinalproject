@@ -10,6 +10,7 @@ const Alumne = require('./models/alumne')
 const Professor = require('./models/professor')
 const User = require('./models/user')
 const { CrudUser } = require('./db/crudUser')
+const { CrudProfessor } = require('./db/crudProfessor')
 
 const authenticateJWT = (req, res, next) => {
     // arrepleguem el JWT d'autorització
@@ -38,54 +39,39 @@ app.use(bodyParser.json())
 
 app.listen(8080);
 
-app.post('/contactos', (req, res) => {
-    Contacto.find().then(resultado => {
-        res.status(200).send({ ok: true, resultado: resultado });
-
-    }).catch(error => {
-        res.status(500).send({
-            ok: false, error: error
-        })
-    })
-})
-
-app.get('/contactos/:id', (req, res) => {
-    Contacto.findById(req.params.id).then(resultado => {
-        if (resultado)
-            res.status(200)
-                .send({ ok: true, resultado: resultado });
-        else
-            res.status(400)
-                .send({
-                    ok: false,
-                    error: "No se han encontrado contactos"
-                });
-    }).catch(error => {
-        res.status(500)
-            .send({
-                ok: false,
-                error: "Error buscando el contacto indicado"
-            });
-    });
-});
-
 app.post('/register', (req, res) => {
-    if(req.body.username)
-    let user = new User(
-        req.body.username,
-        req.body.password,
-        req.body.full_name,
-        req.body.avatar
-    );
-    CrudUser.insertUser(user).then(resultado => {
-        res.status(200).send({ ok: true, resultado: resultado });
-    }).catch(error => {
-        res.status(400)
-            .send({
-                ok: false,
-                error: "Error añadiendo usuario"
-            });
-    });
+    if (req.body.username != "" & req.body.password != "" & req.body.full_name != "" & req.body.dni != "") {
+
+        let user = new User.User(
+            req.body.username,
+            req.body.password,
+            req.body.full_name,
+            req.body.avatar
+        );
+        CrudUser.insertUser(user, (error, resultado) => {
+            if (error) {
+                res.status(400)
+                    .send({
+                        ok: false,
+                        error: "Error añadiendo usuario: " + error
+                    });
+            } else {
+                console.log(resultado)
+                if (CrudProfessor.isProfessor(req.body.dni) == 1) {
+                    let profe = new Professor(resultado.id, req.body.dept)
+                    CrudProfessor.insertProfessor(profe)
+                }
+                res.status(200).send({ ok: true, resultado: resultado })
+            }
+
+        })
+    }else{
+        res.status(403).send({
+            ok: false,
+            error: "Error, los campos no son validos"
+        })
+    }
+    
 
 });
 

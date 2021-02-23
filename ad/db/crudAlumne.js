@@ -4,7 +4,7 @@ class CrudAlumne {
 
     constructor() { }
 
-    insertAlumne(Alumne, callback) {
+    insertAlumne(Alumne) {
         let conn = this.db.getConnection();
         let sql =
             "INSERT INTO alumne (id_alumne, repetidor, curs) VALUES (?, ?, ?)";
@@ -16,10 +16,18 @@ class CrudAlumne {
                 Alumne.repetidor,
                 Alumne.curs
             ],
-        ).then(results => {
-            conn.end 
-            callback(results)
-        }).catch(err => console.log(err));
+            function (err, results) {
+
+                return new Promise((resolve, reject) => {
+
+                    if (err) {
+                        reject(err)
+                    } else {
+                        resolve(results)
+                    }
+                })
+            }
+        )
 
     }
 

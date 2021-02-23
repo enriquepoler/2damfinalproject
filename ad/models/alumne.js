@@ -1,11 +1,5 @@
 class Alumne{
 
-    _id_alumne
-    _repetidor
-    _curs
-
-    constructor(){}
-
     constructor(id_alumne, repetirdor, curs){
         this._id_alumne = id_alumne
         this._repetidor = repetirdor

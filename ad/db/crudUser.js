@@ -1,11 +1,12 @@
-var db = require("./database");
+var DB = require("./database");
 
 class CrudUser {
 
     constructor() { }
 
-    insertUser(User) {
-        let conn = this.db.getConnection();
+    static insertUser(User, callback) {
+        let mydb = new DB.Database()
+        let conn = mydb.getConnection()
         let sql =
             "INSERT INTO users (username, password, full_name, avatar) VALUES (?, ?, ?, ?, ?)";
 
@@ -19,14 +20,7 @@ class CrudUser {
             ],
             function (err, results) {
 
-                return new Promise((resolve, reject) => {
-
-                    if (err) {
-                        reject(err)
-                    } else {
-                        resolve(results)
-                    }
-                })
+                callback(err, results)
             }
         )
 

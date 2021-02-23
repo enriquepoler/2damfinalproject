@@ -1,10 +1,5 @@
 class Professor{
 
-    _id_professor
-    _departament
-
-    constructor(){}
-
     constructor(id_professor, departament){
         this._id_professor = id_professor
         this._departament = departament

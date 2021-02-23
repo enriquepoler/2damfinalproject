@@ -1,15 +1,7 @@
 class User{
 
-    _id
-    _username
-    _password
-    _full_name
-    _avatar
-
-    constructor(){}
-
     constructor(username, password, full_name, avatar){
-        this._id = id
+        
         this._username = username
         this._password = password
         this._full_name = full_name
@@ -57,9 +49,6 @@ class User{
     set avatar(x){
         this._avatar = x;
     };
-
-    
-
 
 }
 

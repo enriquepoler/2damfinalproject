@@ -4,7 +4,7 @@ class CrudProfessor {
 
     constructor() { }
 
-    insertProfessor(Professor, callback) {
+    insertProfessor(Professor) {
         let conn = this.db.getConnection();
         let sql =
             "INSERT INTO professor (id_professor, departament) VALUES (?, ?)";
@@ -13,13 +13,44 @@ class CrudProfessor {
             sql,
             [
                 Professor.id_professor,
-                Alumne.departament
+                Professor.departament
             ],
-        ).then(results => {
-            conn.end 
-            callback(results)
-        }).catch(err => console.log(err));
+            function (err, results) {
 
+                return new Promise((resolve, reject) => {
+
+                    if (err) {
+                        reject(err)
+                    } else {
+                        resolve(results)
+                    }
+                })
+            }
+        )
+    }
+
+    isProfessor(dni){
+        let conn = this.db.getConnection();
+        let sql =
+            "SELECT count(dni) FROM dni_profe WHERE dni = ?";
+
+        conn.query(
+            sql,
+            [
+                dni
+            ],
+            function (err, results) {
+
+                return new Promise((resolve, reject) => {
+
+                    if (err) {
+                        reject(err)
+                    } else {
+                        resolve(results)
+                    }
+                })
+            }
+        )
     }
 
     /*getAllPlanets(callback) {
