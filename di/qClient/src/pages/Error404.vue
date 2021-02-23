@@ -1,12 +1,12 @@
 <template>
-  <div class="fullscreen bg-blue text-white text-center q-pa-md flex flex-center">
+  <div
+    class="fullscreen bg-blue text-white text-center q-pa-md flex flex-center"
+  >
     <div>
-      <div style="font-size: 30vh">
-        404
-      </div>
+      <div style="font-size: 30vh">404</div>
 
-      <div class="text-h2" style="opacity:.4">
-        Oops. Nothing here...
+      <div class="text-h2" style="opacity: 0.4">
+        {{ missatge }}
       </div>
 
       <q-btn
@@ -15,7 +15,7 @@
         text-color="blue"
         unelevated
         to="/"
-        label="Go Home"
+        label="Torna a l'inici"
         no-caps
       />
     </div>
@@ -24,6 +24,11 @@
 
 <script>
 export default {
-  name: 'Error404'
+  name: 'Error404',
+  data () {
+    return {
+      missatge: 'Pàgina no existent'
+    }
+  }
 }
 </script>

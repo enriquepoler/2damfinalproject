@@ -8,7 +8,7 @@
       v-if="icon"
       avatar
     >
-      <q-icon :name="icon" />
+      <q-icon :color="color" :name="icon" />
     </q-item-section>
 
     <q-item-section>
@@ -40,6 +40,10 @@ export default {
     },
 
     icon: {
+      type: String,
+      default: ''
+    },
+    color: {
       type: String,
       default: ''
     }

@@ -55,43 +55,50 @@ const linksData = [
     title: 'Docs',
     caption: 'quasar.dev',
     icon: 'school',
-    link: 'https://quasar.dev'
+    link: 'https://quasar.dev',
+    color: 'primary'
   },
   {
     title: 'Github',
     caption: 'github.com/quasarframework',
     icon: 'code',
-    link: 'https://github.com/quasarframework'
+    link: 'https://github.com/quasarframework',
+    color: 'primary'
   },
   {
     title: 'Discord Chat Channel',
     caption: 'chat.quasar.dev',
     icon: 'chat',
-    link: 'https://chat.quasar.dev'
+    link: 'https://chat.quasar.dev',
+    color: 'primary'
   },
   {
     title: 'Forum',
     caption: 'forum.quasar.dev',
     icon: 'record_voice_over',
-    link: 'https://forum.quasar.dev'
+    link: 'https://forum.quasar.dev',
+    color: 'primary'
   },
   {
     title: 'Twitter',
     caption: '@quasarframework',
     icon: 'rss_feed',
-    link: 'https://twitter.quasar.dev'
+    link: 'https://twitter.quasar.dev',
+    color: 'primary'
   },
   {
     title: 'Facebook',
     caption: '@QuasarFramework',
     icon: 'public',
-    link: 'https://facebook.quasar.dev'
+    link: 'https://facebook.quasar.dev',
+    color: 'primary'
   },
   {
     title: 'Quasar Awesome',
     caption: 'Community Quasar projects',
     icon: 'favorite',
-    link: 'https://awesome.quasar.dev'
+    link: 'https://awesome.quasar.dev',
+    color: 'primary'
   }
 ]
 
@@ -99,14 +106,16 @@ const linksDataNotLogged = [
   {
     title: 'Login',
     caption: 'Loggin into app',
-    icon: 'public',
-    link: '/login'
+    icon: 'login',
+    link: '/',
+    color: 'primary'
   },
   {
     title: 'About',
     caption: 'About our page',
-    icon: 'school',
-    link: '/about'
+    icon: 'help',
+    link: '/about',
+    color: 'primary'
   }
 ]
 
