@@ -8,7 +8,7 @@ class CrudUser {
         let mydb = new DB.Database()
         let conn = mydb.getConnection()
         let sql =
-            "INSERT INTO users (username, password, full_name, avatar) VALUES (?, ?, ?, ?, ?)";
+            "INSERT INTO users (username, password, full_name, avatar) VALUES (?, ?, ?, ?)";
 
         conn.query(
             sql,
