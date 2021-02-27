@@ -2,7 +2,6 @@ const express = require('express')
 const mysql = require('mysql')
 const bodyParser = require('body-parser')
 const jwt = require('jsonwebtoken')
-const accessTokenSecret = "paraulasupersecreta"
 const crudAlumne = require('./db/crudAlumne')
 const crudProfessor = require('./db/crudProfessor')
 const crudUser = require('./db/crudUser')
@@ -11,13 +10,15 @@ const Professor = require('./models/professor')
 const User = require('./models/user')
 const { CrudUser } = require('./db/crudUser')
 const { CrudProfessor } = require('./db/crudProfessor')
+const accessTokenSecret = 'paraulasupersecreta'
+const refreshTokenSecret = 'laMateixaDeSempre'
 
 const authenticateJWT = (req, res, next) => {
     // arrepleguem el JWT d'autorització
     const authHeader = req.headers.authorization;
     if (authHeader) { // si hi ha toquen
         // recuperem el jwt
-        const token = authHeader.split(' ')[1];
+        const token = authHeader.split(' ')[1]
         jwt.verify(token, accessTokenSecret, (err, user) => {
             if (err) {
                 return res.sendStatus(403);
@@ -25,13 +26,28 @@ const authenticateJWT = (req, res, next) => {
             // afegim a la petició les dades que venien en el jwt user
             req.user = user;
             // s'executa la segïuent funció, un cop s'ha fet el middleware
-            next();
-        });
-    } else { // no està. contestem directament al client amb un error
-        401(unauthorized)
+            next()
+        })
+    } else { // no està. contestem directament al client amb un error 401(unauthorized)
         res.sendStatus(401);
     }
-};
+}
+
+function authenticateProfe(req, res, next){
+    if(req.user.role == 'profe'){
+        next()
+    } else {
+        return res.sendStatus(403)
+    }
+}
+
+function authenticateAlu(req, res, next){
+    if(req.user.role == 'alumne'){
+        next()
+    } else {
+        return res.sendStatus(403) 
+    }
+}
 
 let app = express();
 

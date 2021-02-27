@@ -1,8 +1,7 @@
 const jwt = require('jsonwebtoken');
-
-const accessTokenSecret = 'paraulaTopSecret';
-const refreshTokenSecret = 'laMateixaDeSempre';
-const refreshTokens = [];
+const accessTokenSecret = 'paraulaTopSecret'
+const refreshTokenSecret = 'laMateixaDeSempre'
+const refreshTokens = []
 
 function authenticateJWT(req, res, next){
     
@@ -20,17 +19,9 @@ function authenticateJWT(req, res, next){
     } else {
             res.sendStatus(401);
         }
-};
-
-function authorizeAlumne(req, res, next){
-    if(req.user.role == 'alumne'){
-        next()
-    } else {
-        return res.sendStatus(403); 
-    }
 }
 
-function authorizeProfe(req, res, next){
+function authenticateProfe(req, res, next){
     if(req.user.role == 'profe'){
         next()
     } else {
@@ -38,4 +29,14 @@ function authorizeProfe(req, res, next){
     }
 }
 
-module.exports = {accessTokenSecret, refreshTokenSecret, refreshTokens, authenticateJWT, authorizeAlumne, authorizeProfe, jwt}
+function authenticateAlu(req, res, next){
+    if(req.user.role == 'alumne'){
+        next()
+    } else {
+        return res.sendStatus(403); 
+    }
+}
+
+
+
+module.exports = {accessTokenSecret, refreshTokenSecret, refreshTokens, authenticateJWT, authenticateProfe, authenticateAlu, jwt}
