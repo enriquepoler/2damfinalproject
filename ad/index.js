@@ -218,17 +218,17 @@ app.post('/login', (req, res) => {
             if(err){
                 res.status(403).send({
                     ok: false,
-                    error: "Error, los campos no son validos"
+                    error: err
                 })
             }else{
-                CrudProfessor.isProfessor(req.body.dni, (err, result) => {
+                CrudUser.getUserID(user, (err, resID) =>{
                     if(err){
                         res.status(400).send({
                             ok: false,
                             error: err
                         })
                     }else{
-                        CrudUser.getUserID(user, (err, resID) =>{
+                        CrudProfessor.isProfessorByID(resID.id, (err, result) => {
                             if(err){
                                 res.status(400).send({
                                     ok: false,
@@ -242,15 +242,15 @@ app.post('/login', (req, res) => {
                                         username: user.username,
                                         role: "profe"
                                     }, accessTokenSecret, {expiresIn: '2h'});                                                        
-
+        
                                     const refreshToken = jwt.sign({ 
                                         user_id: resID.id,
                                         username: user.username,
                                         role: "profe"
                                     }, refreshTokenSecret);
-
+        
                                     refreshTokens.push(refreshToken);
-
+        
                                     res.status(200).json({
                                         accessToken,
                                         refreshToken
@@ -272,15 +272,15 @@ app.post('/login', (req, res) => {
                                         username: user.username,
                                         role: "alumne"
                                     }, accessTokenSecret, {expiresIn: '2h'});                                                        
-
+        
                                     const refreshToken = jwt.sign({ 
                                         user_id: resID.id,
                                         username: user.username,
                                         role: "alumne"
                                     }, refreshTokenSecret);
-
+        
                                     refreshTokens.push(refreshToken);
-
+        
                                     res.status(200).json({
                                         accessToken,
                                         refreshToken
@@ -297,12 +297,15 @@ app.post('/login', (req, res) => {
                                     })
                                 }
                             }
-
                         })
                     }
-
                 })
             }
+        })
+    }else{
+        res.status(403).send({
+            ok: false,
+            error: "Error, los campos no son validos"
         })
     }
 })

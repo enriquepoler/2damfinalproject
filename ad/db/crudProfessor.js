@@ -37,6 +37,22 @@ class CrudProfessor {
         )
     }
 
+    static isProfessorByID(id, callback){
+        let conn = DB.getConnection()
+        let sql =
+            "SELECT count(id_professor) as isProfe FROM professor WHERE id_professor = ?";
+
+        conn.query(
+            sql,
+            [
+                id
+            ],
+            function (err, results) {
+                callback(err, results[0])
+            }
+        )
+    }
+
 }
 
 module.exports = CrudProfessor
