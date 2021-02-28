@@ -15,7 +15,7 @@ class CrudUser {
             sql,
             [
                 User.username,
-                md5(User.password),
+                User.password,
                 User.full_name,
                 User.avatar
             ],
@@ -38,7 +38,43 @@ class CrudUser {
             ],
             function (err, results) {
                 
-                callback(err, results)
+                callback(err, results[0])
+            }
+        )
+    }
+
+    static usernameExists(User, callback){
+        let conn = DB.getConnection()
+        let sql =
+            "SELECT count(username) as usernameExists FROM users WHERE username = ?";
+
+        conn.query(
+            sql,
+            [
+                User.username
+            ],
+            function (err, results) {
+                
+                callback(err, results[0])
+            }
+        )
+    
+    }
+
+    static login(User, callback){
+        let conn = DB.getConnection()
+        let sql =
+            "SELECT * FROM users WHERE username = ? and password = ?";
+
+        conn.query(
+            sql,
+            [
+                User.username,
+                md5(User.password)
+            ],
+            function (err, results) {
+                
+                callback(err, results[0])
             }
         )
     }

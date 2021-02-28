@@ -13,6 +13,7 @@ const { CrudAlumne } = require('./db/crudAlumne')
 const port = 8090
 const accessTokenSecret = 'paraulasupersecreta'
 const refreshTokenSecret = 'laMateixaDeSempre'
+const refreshTokens = [];
 
 const authenticateJWT = (req, res, next) => {
     // arrepleguem el JWT d'autorització
@@ -54,7 +55,24 @@ let app = express();
 
 app.use(bodyParser.json())
 
-app.listen(port);
+app.listen(port , () => {
+    console.log('Authentication service started on port ' + port)
+})
+
+// 1. Rebre les dades i comprovar que els camps obligatories existeixen.
+// 2. Comprovar que el username no està donat d’alta a la taula d’usuaris.
+// 3. Verificar que el dni està o no a la taula de DNI_PROFES
+// 4. Inserir en la taula de users.
+// 5. Inserir en la taula de alumne o professor, depenent del resultat de l’apartat 3
+// 6. Retornar la informació al client. Aquesta informació deu empaquetar-se en un JWT, i en l’apartat
+// del payload contindrà com a dades:
+//{
+//    "user_id": 23,
+//    "username": "pepitou",
+//    "role": "profe",
+//    "iat": 1613503548,
+//    "exp": 1613589948
+//}
 
 app.post('/register', (req, res) => {
     if (req.body.username != "" & req.body.password != "" & req.body.full_name != "" & req.body.dni != "") {
@@ -65,14 +83,144 @@ app.post('/register', (req, res) => {
             req.body.full_name,
             req.body.avatar
         )
-        CrudUser.insertUser(user, (error, resultado) => {
-            if (error) {
+
+        CrudUser.usernameExists(user, (err, rs) =>{
+            if(err){
                 res.status(400)
                     .send({
                         ok: false,
-                        error: "Error añadiendo usuario: " + error
+                        error: "Error añadiendo usuario: " + err
                     })
-            } else {        
+            }else{
+                if(rs.usernameExists == 1){
+                    res.status(400)
+                    .send({
+                        ok: false,
+                        error: "El nombre de usuario ya existe"
+                    })
+                }else if(rs.usernameExists == 0){
+                    CrudUser.insertUser(user, (error, resultado) => {
+                        if (error) {
+                            res.status(400)
+                                .send({
+                                    ok: false,
+                                    error: "Error añadiendo usuario: " + error
+                                })
+                        } else {        
+                            CrudProfessor.isProfessor(req.body.dni, (err, result) => {
+                                if(err){
+                                    res.status(400).send({
+                                        ok: false,
+                                        error: err
+                                    })
+                                }else{
+                                    CrudUser.getUserID(user, (err, resID) =>{
+                                        if(err){
+                                            res.status(400).send({
+                                                ok: false,
+                                                error: err
+                                            })
+                                        }else{
+                                            if(result.isProfe == 1){
+                                                CrudProfessor.insertProfessor(resID.id, (err, reslt)  =>{
+                                                    if(err){
+                                                        res.status(400).send({
+                                                            ok: false,
+                                                            error: err
+                                                        })
+                                                    }else{
+                                                        // Generarem el token
+                                                        const accessToken = jwt.sign({ 
+                                                            user_id: resID.id,
+                                                            username: user.username,
+                                                            role: "profe"
+                                                        }, accessTokenSecret, {expiresIn: '20m'});                                                        
+
+                                                        const refreshToken = jwt.sign({ 
+                                                            user_id: resID.id,
+                                                            username: user.username,
+                                                            role: "profe"
+                                                        }, refreshTokenSecret);
+
+                                                        refreshTokens.push(refreshToken);
+
+                                                        res.status(200).json({
+                                                            accessToken,
+                                                            refreshToken
+                                                        }).send({
+                                                            ok: true,
+                                                            resultado: reslt
+                                                        })
+                                                    }
+                                                })
+                                            }else if(result.isProfe == 0){
+                                                CrudAlumne.insertAlumne(resID.id, (error, resltado) =>{
+                                                    if(error){
+                                                        res.status(400).send({
+                                                            ok: false,
+                                                            error: error
+                                                        })
+                                                    }else{
+                                                        // Generarem el token
+                                                        const accessToken = jwt.sign({ 
+                                                            user_id: resID.id,
+                                                            username: user.username,
+                                                            role: "alumne"
+                                                        }, accessTokenSecret, {expiresIn: '2h'});                                                        
+
+                                                        const refreshToken = jwt.sign({ 
+                                                            user_id: resID.id,
+                                                            username: user.username,
+                                                            role: "alumne"
+                                                        }, refreshTokenSecret);
+
+                                                        refreshTokens.push(refreshToken);
+
+                                                        res.status(200).json({
+                                                            accessToken,
+                                                            refreshToken
+                                                        }).send({
+                                                            ok: true,
+                                                            data:{
+                                                                "token": accessToken,
+                                                                "refreshToken": refreshToken,
+                                                                "avatar": ""
+                                                            }
+                                                        })
+                                                    }
+                                                })
+                                            }    
+                                        }
+                                    })
+                                }
+                            })
+                        }
+                    })
+                }
+            }
+        })
+        
+    }else{
+        res.status(403).send({
+            ok: false,
+            error: "Error, los campos no son validos"
+        })
+    }
+})
+
+app.post('/login', (req, res) => {
+    if (req.body.username != "" & req.body.password != "") {
+        let user = new User.User(
+            req.body.username,
+            req.body.password
+        )
+        CrudUser.login(user, (err, resu) => {
+            if(err){
+                res.status(403).send({
+                    ok: false,
+                    error: "Error, los campos no son validos"
+                })
+            }else{
                 CrudProfessor.isProfessor(req.body.dni, (err, result) => {
                     if(err){
                         res.status(400).send({
@@ -87,78 +235,74 @@ app.post('/register', (req, res) => {
                                     error: err
                                 })
                             }else{
-                                if(result[0].isProfe == 1){
-                                    CrudProfessor.insertProfessor(resID[0].id, (err, reslt)  =>{
-                                        if(err){
-                                            res.status(400).send({
-                                                ok: false,
-                                                error: err
-                                            })
-                                        }else{
-                                            res.status(200).send({
-                                                ok: true,
-                                                resultado: reslt
-                                            })
+                                if(result.isProfe == 1){
+                                    // Generarem el token
+                                    const accessToken = jwt.sign({ 
+                                        user_id: resID.id,
+                                        username: user.username,
+                                        role: "profe"
+                                    }, accessTokenSecret, {expiresIn: '2h'});                                                        
+
+                                    const refreshToken = jwt.sign({ 
+                                        user_id: resID.id,
+                                        username: user.username,
+                                        role: "profe"
+                                    }, refreshTokenSecret);
+
+                                    refreshTokens.push(refreshToken);
+
+                                    res.status(200).json({
+                                        accessToken,
+                                        refreshToken
+                                    }).send({
+                                        ok: true,
+                                        data:{
+                                            "token": accessToken,
+                                            "refreshToken": refreshToken,
+                                            "avatar": {
+                                                "type": "Buffer",
+                                                "data": []
+                                            }
                                         }
                                     })
-                                }else if(result[0].isProfe == 0){
-                                    CrudAlumne.insertAlumne(resID[0].id, (error, resltado) =>{
-                                        if(error){
-                                            res.status(400).send({
-                                                ok: false,
-                                                error: error
-                                            })
-                                        }else{
-                                            res.status(200).send({
-                                                ok: true,
-                                                resultado: resltado
-                                            })
+                                }else if(result.isProfe == 0){
+                                    // Generarem el token
+                                    const accessToken = jwt.sign({ 
+                                        user_id: resID.id,
+                                        username: user.username,
+                                        role: "alumne"
+                                    }, accessTokenSecret, {expiresIn: '2h'});                                                        
+
+                                    const refreshToken = jwt.sign({ 
+                                        user_id: resID.id,
+                                        username: user.username,
+                                        role: "alumne"
+                                    }, refreshTokenSecret);
+
+                                    refreshTokens.push(refreshToken);
+
+                                    res.status(200).json({
+                                        accessToken,
+                                        refreshToken
+                                    }).send({
+                                        ok: true,
+                                        data:{
+                                            "token": accessToken,
+                                            "refreshToken": refreshToken,
+                                            "avatar": {
+                                                "type": "Buffer",
+                                                "data": []
+                                            }
                                         }
                                     })
-                                }    
+                                }
                             }
+
                         })
                     }
+
                 })
             }
         })
-    }else{
-        res.status(403).send({
-            ok: false,
-            error: "Error, los campos no son validos"
-        })
     }
 })
-
-app.put('/contactos/:id', (req, res) => {
-    Contacto.findByIdAndUpdate(req.params.id, {
-        $set: {
-            nombre: req.body.nombre,
-            telefono: req.body.telefono,
-            edad: req.body.edad
-        }
-    }, { new: true }).then(resultado => {
-        res.status(200)
-            .send({ ok: true, resultado: resultado });
-    }).catch(error => {
-        res.status(400)
-            .send({
-                ok: false,
-                error: "Error actualizando contacto"
-            });
-    });
-});
-
-app.delete('/contactos/:id', (req, res) => {
-    Contacto.findByIdAndRemove(req.params.id)
-        .then(resultado => {
-            res.status(200)
-                .send({ ok: true, resultado: resultado });
-        }).catch(error => {
-            res.status(400)
-                .send({
-                    ok: false,
-                    error: "Error eliminando contacto"
-                });
-        });
-});

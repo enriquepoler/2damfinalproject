@@ -32,7 +32,7 @@ class CrudProfessor {
                 dni
             ],
             function (err, results) {
-                callback(err, results)
+                callback(err, results[0])
             }
         )
     }
