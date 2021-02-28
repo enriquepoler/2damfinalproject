@@ -1,38 +1,30 @@
-var db = require("./database");
+var DB = require("./database");
 
 class CrudProfessor {
 
     constructor() { }
 
-    insertProfessor(Professor) {
-        let conn = this.db.getConnection();
+    static insertProfessor(id, callback) {
+        let conn = DB.getConnection()
         let sql =
-            "INSERT INTO professor (id_professor, departament) VALUES (?, ?)";
+            "INSERT INTO professor (id_professor) VALUES (?)";
 
         conn.query(
             sql,
             [
-                Professor.id_professor,
-                Professor.departament
+                id
             ],
             function (err, results) {
 
-                return new Promise((resolve, reject) => {
-
-                    if (err) {
-                        reject(err)
-                    } else {
-                        resolve(results)
-                    }
-                })
+                callback(err, results)
             }
         )
     }
 
-    isProfessor(dni){
-        let conn = this.db.getConnection();
+    static isProfessor(dni, callback){
+        let conn = DB.getConnection()
         let sql =
-            "SELECT count(dni) FROM dni_profe WHERE dni = ?";
+            "SELECT count(dni) as isProfe FROM dni_profe WHERE dni = ?";
 
         conn.query(
             sql,
@@ -40,34 +32,12 @@ class CrudProfessor {
                 dni
             ],
             function (err, results) {
-
-                return new Promise((resolve, reject) => {
-
-                    if (err) {
-                        reject(err)
-                    } else {
-                        resolve(results)
-                    }
-                })
+                callback(err, results)
             }
         )
     }
 
-    /*getAllPlanets(callback) {
-        let conn = this.db.getConnection();
-        let sql =
-            "SELECT id, name, rotation_period, orbitation_period, diameter, climate, gravity, terrain, population from planet";
-        conn.query(sql, function (err, results, fields) {
-            if (err) {
-                console.log(err);
-            } else {
-                conn.end();
-                callback(results, fields);
-            }
-        });
-    }*/
 }
 
-module.exports = {
-    CrudProfessor:CrudProfessor,
-};
+module.exports = CrudProfessor
+

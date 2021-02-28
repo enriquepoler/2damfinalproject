@@ -3,7 +3,7 @@ var mysql=require('mysql');
 class Database{
     constructor(){}
 
-    getConnection(){
+    static getConnection(){
         // Retorna una connexió a la BD MySQL
         return mysql.createConnection(
             {
@@ -17,6 +17,4 @@ class Database{
     }
 }
 
-module.exports = {
-    Database:Database
-}
+module.exports = Database

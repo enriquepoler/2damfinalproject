@@ -1,12 +1,13 @@
 var DB = require("./database");
+const md5 = require('md5')
 
 class CrudUser {
 
     constructor() { }
 
     static insertUser(User, callback) {
-        let mydb = new DB.Database()
-        let conn = mydb.getConnection()
+        
+        let conn = DB.getConnection()
         let sql =
             "INSERT INTO users (username, password, full_name, avatar) VALUES (?, ?, ?, ?)";
 
@@ -14,33 +15,34 @@ class CrudUser {
             sql,
             [
                 User.username,
-                User.password,
+                md5(User.password),
                 User.full_name,
                 User.avatar
             ],
             function (err, results) {
-
                 callback(err, results)
             }
         )
 
     }
 
-    /*getAllPlanets(callback) {
-        let conn = this.db.getConnection();
+    static getUserID(User, callback){
+        let conn = DB.getConnection()
         let sql =
-            "SELECT id, name, rotation_period, orbitation_period, diameter, climate, gravity, terrain, population from planet";
-        conn.query(sql, function (err, results, fields) {
-            if (err) {
-                console.log(err);
-            } else {
-                conn.end();
-                callback(results, fields);
+            "SELECT id FROM users WHERE username = ?";
+
+        conn.query(
+            sql,
+            [
+                User.username
+            ],
+            function (err, results) {
+                
+                callback(err, results)
             }
-        });
-    }*/
+        )
+    }
 }
 
-module.exports = {
-    CrudUser: CrudUser,
-};
+module.exports = CrudUser
+
