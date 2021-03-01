@@ -13,45 +13,29 @@ const { CrudAlumne } = require('./db/crudAlumne')
 const port = 8090
 const accessTokenSecret = 'paraulasupersecreta'
 const refreshTokenSecret = 'laMateixaDeSempre'
-const refreshTokens = [];
+const refreshTokens = []
 
 const authenticateJWT = (req, res, next) => {
     // arrepleguem el JWT d'autorització
-    const authHeader = req.headers.authorization;
+    const authHeader = req.headers.authorization
     if (authHeader) { // si hi ha toquen
         // recuperem el jwt
         const token = authHeader.split(' ')[1]
         jwt.verify(token, accessTokenSecret, (err, user) => {
             if (err) {
-                return res.sendStatus(403);
+                return res.sendStatus(403)
             }
             // afegim a la petició les dades que venien en el jwt user
-            req.user = user;
+            req.user = user
             // s'executa la segïuent funció, un cop s'ha fet el middleware
             next()
         })
     } else { // no està. contestem directament al client amb un error 401(unauthorized)
-        res.sendStatus(401);
+        res.sendStatus(401)
     }
 }
 
-function authenticateProfe(req, res, next){
-    if(req.user.role == 'profe'){
-        next()
-    } else {
-        return res.sendStatus(401)
-    }
-}
-
-function authenticateAlu(req, res, next){
-    if(req.user.role == 'alumne'){
-        next()
-    } else {
-        return res.sendStatus(401) 
-    }
-}
-
-let app = express();
+let app = express()
 
 app.use(bodyParser.json())
 
@@ -107,58 +91,59 @@ app.post('/register', (req, res) => {
                                     error: "Error añadiendo usuario: " + error
                                 })
                         } else {        
-                            CrudProfessor.isProfessor(req.body.dni, (err, result) => {
-                                if(err){
+                            CrudProfessor.isProfessor(req.body.dni, (erri, result) => {
+                                if(erri){
                                     res.status(400).send({
                                         ok: false,
-                                        error: err
+                                        error: erri
                                     })
                                 }else{
-                                    CrudUser.getUserID(user, (err, resID) =>{
-                                        if(err){
+                                    CrudUser.getUserID(user, (erru, resID) =>{
+                                        if(erru){
                                             res.status(400).send({
                                                 ok: false,
-                                                error: err
+                                                error: erru
                                             })
                                         }else{
                                             if(result.isProfe == 1){
-                                                CrudProfessor.insertProfessor(resID.id, (err, reslt)  =>{
-                                                    if(err){
+                                                CrudProfessor.insertProfessor(resID.id, (erra, reslt)  =>{
+                                                    if(erra){
                                                         res.status(400).send({
                                                             ok: false,
-                                                            error: err
+                                                            error: erra
                                                         })
                                                     }else{
                                                         // Generarem el token
                                                         const accessToken = jwt.sign({ 
                                                             user_id: resID.id,
                                                             username: user.username,
-                                                            role: "profe"
-                                                        }, accessTokenSecret, {expiresIn: '20m'});                                                        
+                                                            role: "professor"
+                                                        }, accessTokenSecret, {expiresIn: '20m'})                                                        
 
                                                         const refreshToken = jwt.sign({ 
                                                             user_id: resID.id,
                                                             username: user.username,
-                                                            role: "profe"
-                                                        }, refreshTokenSecret);
+                                                            role: "professor"
+                                                        }, refreshTokenSecret)
 
-                                                        refreshTokens.push(refreshToken);
+                                                        refreshTokens.push(refreshToken)
 
-                                                        res.status(200).json({
-                                                            accessToken,
-                                                            refreshToken
-                                                        }).send({
+                                                        res.status(200).send({
                                                             ok: true,
-                                                            resultado: reslt
+                                                            data:{
+                                                                token: accessToken,
+                                                                refreshToken: refreshToken,
+                                                                avatar: ""
+                                                            }                                                            
                                                         })
                                                     }
                                                 })
                                             }else if(result.isProfe == 0){
-                                                CrudAlumne.insertAlumne(resID.id, (error, resltado) =>{
-                                                    if(error){
+                                                CrudAlumne.insertAlumne(resID.id, (errorA, resltado) =>{
+                                                    if(errorA){
                                                         res.status(400).send({
                                                             ok: false,
-                                                            error: error
+                                                            error: errorA
                                                         })
                                                     }else{
                                                         // Generarem el token
@@ -166,25 +151,22 @@ app.post('/register', (req, res) => {
                                                             user_id: resID.id,
                                                             username: user.username,
                                                             role: "alumne"
-                                                        }, accessTokenSecret, {expiresIn: '2h'});                                                        
+                                                        }, accessTokenSecret, {expiresIn: '2h'})                                                        
 
                                                         const refreshToken = jwt.sign({ 
                                                             user_id: resID.id,
                                                             username: user.username,
                                                             role: "alumne"
-                                                        }, refreshTokenSecret);
+                                                        }, refreshTokenSecret)
 
-                                                        refreshTokens.push(refreshToken);
+                                                        refreshTokens.push(refreshToken)
 
-                                                        res.status(200).json({
-                                                            accessToken,
-                                                            refreshToken
-                                                        }).send({
+                                                        res.status(200).send({
                                                             ok: true,
                                                             data:{
-                                                                "token": accessToken,
-                                                                "refreshToken": refreshToken,
-                                                                "avatar": ""
+                                                                token: accessToken,
+                                                                refreshToken: refreshToken,
+                                                                avatar: ""
                                                             }
                                                         })
                                                     }
@@ -221,91 +203,240 @@ app.post('/login', (req, res) => {
                     error: err
                 })
             }else{
-                CrudUser.getUserID(user, (err, resID) =>{
-                    if(err){
-                        res.status(400).send({
-                            ok: false,
-                            error: err
-                        })
-                    }else{
-                        CrudProfessor.isProfessorByID(resID.id, (err, result) => {
-                            if(err){
-                                res.status(400).send({
-                                    ok: false,
-                                    error: err
-                                })
-                            }else{
-                                if(result.isProfe == 1){
-                                    // Generarem el token
-                                    const accessToken = jwt.sign({ 
-                                        user_id: resID.id,
-                                        username: user.username,
-                                        role: "profe"
-                                    }, accessTokenSecret, {expiresIn: '2h'});                                                        
-        
-                                    const refreshToken = jwt.sign({ 
-                                        user_id: resID.id,
-                                        username: user.username,
-                                        role: "profe"
-                                    }, refreshTokenSecret);
-        
-                                    refreshTokens.push(refreshToken);
-        
-                                    res.status(200).json({
-                                        accessToken,
-                                        refreshToken
-                                    }).send({
-                                        ok: true,
-                                        data:{
-                                            "token": accessToken,
-                                            "refreshToken": refreshToken,
-                                            "avatar": {
-                                                "type": "Buffer",
-                                                "data": []
-                                            }
-                                        }
-                                    })
-                                }else if(result.isProfe == 0){
-                                    // Generarem el token
-                                    const accessToken = jwt.sign({ 
-                                        user_id: resID.id,
-                                        username: user.username,
-                                        role: "alumne"
-                                    }, accessTokenSecret, {expiresIn: '2h'});                                                        
-        
-                                    const refreshToken = jwt.sign({ 
-                                        user_id: resID.id,
-                                        username: user.username,
-                                        role: "alumne"
-                                    }, refreshTokenSecret);
-        
-                                    refreshTokens.push(refreshToken);
-        
-                                    res.status(200).json({
-                                        accessToken,
-                                        refreshToken
-                                    }).send({
-                                        ok: true,
-                                        data:{
-                                            "token": accessToken,
-                                            "refreshToken": refreshToken,
-                                            "avatar": {
-                                                "type": "Buffer",
-                                                "data": []
-                                            }
-                                        }
-                                    })
-                                }
+                if(resu != null){
+                    CrudProfessor.isProfessorByID(resu.id, (erro, result) => {
+                        if(erro){
+                            res.status(400).send({
+                                ok: false,
+                                error: erro
+                            })
+                        }else{
+                            var rolUser = null
+                            if(result.isProfe == 1){                            
+                                rolUser = "professor"
+                            }else if(result.isProfe == 0){
+                                rolUser = "alumne"
                             }
-                        })
-                    }
-                })
+
+                            // Generarem el token
+                            const accessToken = jwt.sign({ 
+                                user_id: resu.id,
+                                username: user.username,
+                                role: rolUser
+                            }, accessTokenSecret, {expiresIn: '2h'})                                                        
+
+                            const refreshToken = jwt.sign({ 
+                                user_id: resu.id,
+                                username: user.username,
+                                role: rolUser
+                            }, refreshTokenSecret)
+
+                            refreshTokens.push(refreshToken)
+
+                            res.status(200).send({
+                                ok: true,
+                                data:{
+                                    token: accessToken,
+                                    refreshToken: refreshToken,
+                                    avatar: {
+                                        type: "Buffer",
+                                        data: []
+                                    }
+                                }
+                            })
+                        }
+                    })
+                }else{
+                    res.status(401).send({
+                        ok: false,
+                        error: "Error, l'usuario i/o la contrasenya no son correctes"
+                    })
+                }
+                
             }
         })
     }else{
         res.status(403).send({
             ok: false,
             error: "Error, los campos no son validos"
+        })
+    }
+})
+
+app.get('/notes', authenticateJWT, (req, res) => {
+    if(req.user.role == "alumne"){
+        crudAlumne.askNotesAlumneByID(req.user.user_id, (err, resArrayNotes) => {
+            if(err){
+                res.status(400).send({
+                    ok: false,
+                    error: err
+                })
+            }else{
+                if(resArrayNotes != null){
+                    res.status(200).send({
+                        ok: true,
+                        data: resArrayNotes
+                    })
+                }else{
+                    res.status(400).send({
+                        ok: false,
+                        error: "El alumne no está matriculat de ninguna assignatura"
+                    })
+                }
+                
+            }
+        })
+    }else{
+        res.status(401).send({
+            ok: false,
+            error: "Error, no eres un alumne"
+        })
+    }
+})
+
+app.get('/notes/:id', authenticateJWT, (req, res) => {
+    if(req.user.role == "alumne"){
+        crudAlumne.askNotaAlumneByID(req.user.user_id, req.params.id, (err, resJsonNotes) => {
+            if(err){
+                res.status(400).send({
+                    ok: false,
+                    error: err
+                })
+            }else{
+                if(resJsonNotes != null){
+                    res.status(200).send({
+                        ok: true,
+                        data: resJsonNotes
+                    })
+                }else{
+                    res.status(400).send({
+                        ok: false,
+                        error: "El alumne no está matriculat d'aquesta assignatura"
+                    })
+                }
+                
+            }
+        })
+    }else{
+        res.status(401).send({
+            ok: false,
+            error: "Error, no eres un alumne"
+        })
+    }
+})
+
+app.get('/assignatura/:id_assignatura', authenticateJWT, (req, res) => {
+    CrudUser.askAssigByID(req.params.id_assignatura, (err, resJsonAssig) => {
+        if(err){
+            res.status(400).send({
+                ok: false,
+                error: err
+            })
+        }else{
+            if(resJsonAssig != null){
+                res.status(200).send({
+                    ok: true,
+                    data: resJsonAssig
+                })
+            }else{
+                res.status(400).send({
+                    ok: false,
+                    error: "No existeix ninguna assignatura amb eixe identificador"
+                })
+            }
+            
+        }
+    })
+})
+
+app.get('/moduls', authenticateJWT, (req, res) => {
+    if(req.user.role == "professor"){
+        CrudProfessor.askModuls(req.user.user_id, (err, resArrayModuls) => {
+            if(err){
+                res.status(400).send({
+                    ok: false,
+                    error: err
+                })
+            }else{
+                if(resArrayModuls != null){
+                    res.status(200).send({
+                        ok: true,
+                        data: resArrayModuls
+                    })
+                }else{
+                    res.status(400).send({
+                        ok: false,
+                        error: "El professor no imparteix ningun modul"
+                    })
+                }
+                
+            }
+        })
+    }else{
+        res.status(401).send({
+            ok: false,
+            error: "Error, no eres un professor"
+        })
+    }
+})
+
+app.get('/moduls/:id_assignatura', authenticateJWT, (req, res) => {
+    if(req.user.role == "professor"){
+        CrudProfessor.askModuls(req.user.user_id, req.params.id_assignatura, (err, resArrayModulAssig) => {
+            if(err){
+                res.status(400).send({
+                    ok: false,
+                    error: err
+                })
+            }else{
+                if(resArrayModulAssig != null){
+                    res.status(200).send({
+                        ok: true,
+                        data: resArrayModulAssig
+                    })
+                }else{
+                    res.status(400).send({
+                        ok: false,
+                        error: "El professor no imparteix aquest modul o no hi han alumnes matriculats de l'assignatura"
+                    })
+                }
+                
+            }
+        })
+    }else{
+        res.status(401).send({
+            ok: false,
+            error: "Error, no eres un professor"
+        })
+    }
+})
+
+app.put('/moduls/:id_assignatura/:id_alumne', authenticateJWT, (req, res) => {
+    if(req.user.role == "professor"){
+        CrudProfessor.setNotaByIdAssigAndIdAlu(req.user.user_id, req.params.id_assignatura, req.params.id_alumne, req.body.nota, (err, resPutNota) => {
+            if(err){
+                res.status(400).send({
+                    ok: false,
+                    error: err
+                })
+            }else{
+                if(resPutNota != null){
+                    res.status(200).send({
+                        ok: true
+                    })
+                }else{
+                    res.status(400).send({
+                        ok: false,
+                        error: "El professor no imparteix aquest modul/no existeix el modul o no hi han alumnes matriculats de l'assignatura"
+                    })
+                }
+                
+            }
+        })
+    }else{
+        res.status(401).send({
+            ok: false,
+            error: "Error, no eres un professor"
         })
     }
 })

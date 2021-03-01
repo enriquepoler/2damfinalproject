@@ -1,4 +1,4 @@
-var mysql=require('mysql');
+var mysql=require('mysql')
 
 class Database{
     constructor(){}
@@ -13,7 +13,7 @@ class Database{
             user     : 'express',
             password : 'express',
             database : 'docencia'
-          }); 
+          }) 
     }
 }
 
